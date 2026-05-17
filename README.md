@@ -1,4 +1,6 @@
-# Hondius Canada Case Analysis
+# Hondius Canadian Andes virus case analysis
+
+** Note: analysis up to date as of 17 May 2026 **
 
 Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 (direct infection from Hondius case 1) or generation 3 (infection from the onboard secondary cluster).
 

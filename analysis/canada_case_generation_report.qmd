@@ -247,6 +247,8 @@ prior_table <- tibble::tibble(
 
 # Summary
 
+** Note: analysis up to date as of 17 May 2026 **
+
 A Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) assessed whether infection was generation 2 (direct from Hondius case 1) or generation 3 (from the onboard cluster). Applying the Epuyén timing posterior from Funk and Abbott [@funk_abbott_2026; @martinez2020] to the Hondius line list [@kraemerlab2026], the baseline analysis gave posterior support of `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) for generation 3 against `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 [@phac2026; @who_don600_2026; @who_don601_2026]. The peak generation-3 exposure date was `r fmt_date(gen3_peak$exposure_date[[1]])`. Posterior support for generation 3 provides additional evidence of human-to-human transmission within the Hondius cluster beyond the initial case.
 
 # Introduction
