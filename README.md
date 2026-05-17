@@ -4,6 +4,8 @@
 
 Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 (direct infection from Hondius case 1) or generation 3 (infection from the onboard secondary cluster).
 
+**[View rendered report](https://htmlpreview.github.io/?https://github.com/bquilty25/hondius-canada-case-analysis/blob/main/analysis/canada_case_generation_report.html)**
+
 > **Key result:** Baseline posterior support was **73.9% (95% CrI 52.9–91.1%) for generation 3** versus 26.1% (95% CrI 8.9–47.1%) for generation 2. No sensitivity scenario reversed this ordering. The result indicates additional evidence of human-to-human transmission within the Hondius cluster.
 
 ## Approach
