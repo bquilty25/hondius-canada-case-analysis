@@ -1,0 +1,386 @@
+---
+title: "Bayesian Classification of the Canadian Hondius-Linked Case"
+subtitle: "Decision support for whether the Canadian case is second- or third-generation"
+author: "Billy Quilty"
+date: "2026-05-17"
+bibliography: canada_case_generation_report.bib
+link-citations: true
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: paged
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+editor: source
+---
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
+
+pacman::p_load(
+  tidyverse,
+  janitor,
+  rio,
+  here,
+  lubridate,
+  flextable,
+  scales,
+  knitr
+)
+
+theme_set(theme_minimal(base_size = 12))
+
+output_dir <- here::here("output", "canada_case_probability")
+
+# Copy PNGs into the document figure bundle so the preview server can serve them
+fig_bundle_dir <- here::here("analysis", "canada_case_generation_report_files", "figures")
+dir.create(fig_bundle_dir, recursive = TRUE, showWarnings = FALSE)
+invisible(file.copy(
+  list.files(output_dir, pattern = "\\.png$", full.names = TRUE),
+  fig_bundle_dir,
+  overwrite = TRUE
+))
+embedded_plot_dir <- "canada_case_generation_report_files/figures"
+
+classification_summary <- rio::import(here::here("output", "canada_case_probability", "classification_summary.csv")) |>
+  janitor::clean_names() |>
+  mutate(
+    exposure_start = as.Date(exposure_start),
+    exposure_end = as.Date(exposure_end)
+  )
+
+date_support <- rio::import(here::here("output", "canada_case_probability", "baseline_date_distribution.csv")) |>
+  janitor::clean_names() |>
+  mutate(exposure_date = as.Date(exposure_date))
+
+source_support <- rio::import(here::here("output", "canada_case_probability", "baseline_source_distribution.csv")) |>
+  janitor::clean_names()
+
+candidate_sources <- rio::import(here::here("output", "canada_case_probability", "candidate_source_cases.csv")) |>
+  janitor::clean_names() |>
+  mutate(
+    symptom_onset = as.Date(symptom_onset),
+    confirmation_date = as.Date(confirmation_date)
+  )
+
+posterior_draws <- rio::import(here::here("output", "posterior.csv"))
+
+resolved_hypotheses <- rio::import(here::here("output", "canada_case_probability", "resolved_hypothesis_windows.csv")) |>
+  janitor::clean_names() |>
+  mutate(
+    exposure_start = as.Date(exposure_start),
+    exposure_end = as.Date(exposure_end)
+  )
+
+baseline_summary <- classification_summary |>
+  filter(scenario == "baseline")
+
+fmt_prob <- function(x) {
+  scales::number(x, accuracy = 0.001)
+}
+
+fmt_pct <- function(x) {
+  scales::percent(x, accuracy = 0.1)
+}
+
+fmt_date <- function(x) {
+  format(as.Date(x), "%d %b %Y")
+}
+
+gen2_row <- baseline_summary |>
+  filter(hypothesis == "secondary")
+
+gen3_row <- baseline_summary |>
+  filter(hypothesis == "tertiary")
+
+gen2_median <- gen2_row$probability_median[[1]]
+gen2_lower <- gen2_row$probability_lower[[1]]
+gen2_upper <- gen2_row$probability_upper[[1]]
+
+gen3_median <- gen3_row$probability_median[[1]]
+gen3_lower <- gen3_row$probability_lower[[1]]
+gen3_upper <- gen3_row$probability_upper[[1]]
+
+mu_inc_median <- median(posterior_draws[["μ_inc"]])
+sigma_inc_median <- median(posterior_draws[["σ_inc"]])
+mu_delta_median <- median(posterior_draws[["μ_δ"]])
+sigma_delta_median <- median(posterior_draws[["σ_δ"]])
+
+peak_dates <- date_support |>
+  group_by(hypothesis, hypothesis_label) |>
+  slice_max(order_by = probability_mean, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+gen2_peak <- peak_dates |>
+  filter(hypothesis == "secondary")
+
+gen3_peak <- peak_dates |>
+  filter(hypothesis == "tertiary")
+
+candidate_summary <- candidate_sources |>
+  group_by(hypothesis, hypothesis_label) |>
+  summarise(
+    n_sources = dplyr::n(),
+    onset_min = min(symptom_onset, na.rm = TRUE),
+    onset_max = max(symptom_onset, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+hypothesis_table <- resolved_hypotheses |>
+  left_join(candidate_summary, by = c("hypothesis", "hypothesis_label")) |>
+  mutate(
+    assumed_generation = recode(
+      hypothesis,
+      secondary = "Generation 2",
+      tertiary = "Generation 3"
+    ),
+    candidate_sources = ifelse(is.na(n_sources), 0L, n_sources),
+    source_onset_range = ifelse(
+      is.na(onset_min),
+      "No dated source cases",
+      paste(fmt_date(onset_min), "to", fmt_date(onset_max))
+    ),
+    evaluated_exposure_range = paste(fmt_date(exposure_start), "to", fmt_date(exposure_end))
+  )
+
+baseline_table <- baseline_summary |>
+  transmute(
+    `Assumed generation` = recode(
+      hypothesis,
+      secondary = "Generation 2",
+      tertiary = "Generation 3"
+    ),
+    `Posterior median` = fmt_pct(probability_median),
+    `95% credible interval` = paste0(fmt_pct(probability_lower), " to ", fmt_pct(probability_upper)),
+    `Evaluated exposure range` = paste(fmt_date(exposure_start), "to", fmt_date(exposure_end))
+  )
+
+sensitivity_table <- classification_summary |>
+  transmute(
+    scenario_label,
+    hypothesis,
+    summary = paste0(fmt_pct(probability_median), " (", fmt_pct(probability_lower), " to ", fmt_pct(probability_upper), ")")
+  ) |>
+  mutate(
+    hypothesis = recode(
+      hypothesis,
+      secondary = "Generation 2",
+      tertiary = "Generation 3"
+    )
+  ) |>
+  pivot_wider(names_from = hypothesis, values_from = summary) |>
+  rename(`Scenario` = scenario_label)
+
+candidate_display <- candidate_sources |>
+  left_join(
+    source_support |>
+      select(hypothesis, source_id, probability_mean, probability_lower, probability_upper),
+    by = c("hypothesis", "gh_id" = "source_id")
+  ) |>
+  transmute(
+    `Case ID` = gh_id,
+    `Source generation` = recode(
+      hypothesis,
+      secondary = "Generation 1",
+      tertiary = "Generation 2"
+    ),
+    `Joint posterior mean` = fmt_pct(probability_mean),
+    `95% credible interval` = ifelse(
+      is.na(probability_lower),
+      NA_character_,
+      paste0(fmt_pct(probability_lower), " to ", fmt_pct(probability_upper))
+    ),
+    Status = status,
+    Nationality = nationality,
+    `Symptom onset` = fmt_date(symptom_onset),
+    `Confirmation date` = ifelse(is.na(confirmation_date), "Missing", fmt_date(confirmation_date))
+  ) |>
+  arrange(`Case ID`)
+
+top_source_row <- source_support |>
+  slice_max(order_by = probability_mean, n = 1, with_ties = FALSE)
+
+confirmed_only_available <- nrow(dplyr::filter(classification_summary, scenario == "confirmed_sources_only")) > 0
+confirmed_gen3_median <- if (confirmed_only_available) {
+  classification_summary |>
+    dplyr::filter(scenario == "confirmed_sources_only", hypothesis == "tertiary") |>
+    dplyr::pull(probability_median) |>
+    dplyr::first()
+} else {
+  NA_real_
+}
+
+prior_table <- tibble::tibble(
+  Quantity = c(
+    "Incubation log-mean, μ_inc",
+    "Incubation log-SD, σ_inc",
+    "Transmission-timing mean, μ_δ",
+    "Transmission-timing SD, σ_δ",
+    "Offspring dispersion, k",
+    "Initial log reproduction number",
+    "Weekly log R(t) innovations"
+  ),
+  Distribution = c(
+    "Normal",
+    "half-Normal",
+    "Normal",
+    "half-Normal",
+    "half-Normal",
+    "Normal",
+    "half-Normal"
+  ),
+  Prior = c(
+    "Normal(3.0, 0.5)",
+    "Normal(0, 0.5), truncated at > 0",
+    "Normal(0, 5)",
+    "Normal(0, 1), truncated at > 0",
+    "Normal(0.3, 0.5), truncated at > 0",
+    "Normal(log(1.5), 1)",
+    "Normal(0, 0.5), truncated at > 0"
+  )
+)
+```
+
+# Summary
+
+A Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) assessed whether infection was generation 2 (direct from Hondius case 1) or generation 3 (from the onboard cluster). Applying the Epuyén timing posterior from Funk and Abbott [@funk_abbott_2026; @martinez2020] to the Hondius line list [@kraemerlab2026], the baseline analysis gave posterior support of `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) for generation 3 against `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 [@phac2026; @who_don600_2026; @who_don601_2026]. The peak generation-3 exposure date was `r fmt_date(gen3_peak$exposure_date[[1]])`. The strong posterior support for generation 3 providing additional evidence of additional human-to-human transmission within the Hondius cluster beyond assumed transmission from the initial case.
+
+# Introduction
+
+The Hondius outbreak immediately raised the question of whether exported cases represented direct descent from the index case or onward spread within the shipboard cluster [@who_don600_2026; @who_don601_2026]. For the Canadian case, generation 2 implies direct infection from case 1; generation 3 implies the cluster had already amplified before disembarkation [@phac2026]. This report addresses that classification question; full transmission-tree reconstruction is out of scope.
+
+# Methods
+
+Posterior distributions for the Andes virus incubation period and transmission timing were taken from Funk and Abbott's Bayesian re-estimation of the 2018-19 Epuyén outbreak [@funk_abbott_2026; @martinez2020] and applied directly here. This posterior had median incubation log-mean `r fmt_prob(mu_inc_median)`, log-SD `r fmt_prob(sigma_inc_median)`, transmission-timing mean `r fmt_prob(mu_delta_median)` days, and SD `r fmt_prob(sigma_delta_median)` days.
+
+Hondius case data came from the Kraemer Lab line list [@kraemerlab2026]; public health context from PHAC and WHO statements [@phac2026; @who_don600_2026; @who_don601_2026]. Case 1 was treated as the sole generation-1 source; all other onset-documented cases in the source set were candidate generation-2 sources, and the Canadian case was evaluated as either generation 2 or generation 3.
+
+For each posterior draw, the Canadian infection date and candidate source were evaluated jointly: support accumulated where a proposed exposure date was simultaneously consistent with the transmission-timing distribution from the source and with the incubation distribution to Canadian onset. These contributions were combined with priors on generation, source, and date, then normalised to yield posterior support. The exposure window was bounded above by the day before Canadian onset and below by the earliest source onset minus a transmission-padding constant (default five days, capturing plausible pre-symptomatic shedding). Sensitivity analyses used three- and seven-day padding, and a further scenario restricted generation-3 sources to confirmed cases only.
+
+The upstream Epuyén model assigned each case latent infection and onset times, modelled incubation log-normally, transmission timing as normal, offspring counts with a negative-binomial component, and the time-varying reproduction number as a log-scale random walk [@funk_abbott_2026; @martinez2020]. Principal priors are listed in @tbl-priors; the two competing hypotheses are defined in @tbl-hypotheses.
+
+```{r}
+#| label: tbl-priors
+#| tbl-cap: "Bayesian priors used in the Epuyén re-estimation by Funk and Abbott."
+prior_table |>
+  flextable() |>
+  autofit()
+```
+
+```{r}
+#| label: tbl-hypotheses
+#| tbl-cap: "Definition of the two competing assumed generations and the source data that support them."
+hypothesis_table |>
+  transmute(
+    `Assumed generation` = assumed_generation,
+    `Candidate source cases` = candidate_sources,
+    `Source onset range` = source_onset_range,
+    `Evaluated exposure range` = evaluated_exposure_range,
+    Rationale = rationale
+  ) |>
+  flextable() |>
+  autofit()
+```
+
+# Results
+
+The baseline posterior strongly favoured generation 3: `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) versus `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 (@tbl-baseline). Peak exposure support fell on `r fmt_date(gen2_peak$exposure_date[[1]])` under generation 2 and `r fmt_date(gen3_peak$exposure_date[[1]])` under generation 3 (@fig-density; @fig-dates), the latter closely matching the late-April onboard onset wave (@fig-timeline).
+
+```{r}
+#| label: tbl-baseline
+#| tbl-cap: "Baseline posterior probabilities for the two competing assumed generations."
+baseline_table |>
+  flextable() |>
+  autofit()
+```
+
+```{r}
+#| label: fig-density
+#| fig-cap: "Baseline posterior density for the two competing assumed generations."
+knitr::include_graphics(file.path(embedded_plot_dir, "probability_overlap_density.png"))
+```
+
+```{r}
+#| label: fig-dates
+#| fig-cap: "Joint posterior support across exposure dates under the baseline analysis."
+knitr::include_graphics(file.path(embedded_plot_dir, "date_overlap_density.png"))
+```
+
+```{r}
+#| label: fig-timeline
+#| fig-cap: "Symptom onset, confirmation, and outcome dates for Hondius cases and the Canadian case."
+knitr::include_graphics(file.path(embedded_plot_dir, "onset_timings.png"))
+```
+
+No alternative scenario reversed the ordering. Full sensitivity results are in the Supplement (@fig-sensitivity; @tbl-sensitivity).
+
+The generation-2 hypothesis has a single candidate source (case 1, onset `r fmt_date(candidate_sources |> filter(hypothesis == "secondary") |> pull(symptom_onset) |> unique())`); the generation-3 hypothesis averages over `r candidate_sources |> filter(hypothesis == "tertiary") |> nrow()` candidates spanning `r fmt_date(candidate_sources |> filter(hypothesis == "tertiary") |> summarise(min_date = min(symptom_onset, na.rm = TRUE)) |> pull(min_date))` to `r fmt_date(candidate_sources |> filter(hypothesis == "tertiary") |> summarise(max_date = max(symptom_onset, na.rm = TRUE)) |> pull(max_date))`.
+
+# Discussion
+
+The Canadian case is far more consistent with a third-generation infection from the onboard cluster than direct descent from case 1, a conclusion driven almost entirely by timing: the observed onset on 14 May aligns with late-April onboard sources, not with the generation-2 window anchored to case 1.
+
+The result holds across all sensitivity scenarios. Two structural qualifications remain. First, the generation-3 hypothesis has `r nrow(candidate_sources |> filter(hypothesis == "tertiary"))` candidate sources against one for generation 2; the broader candidate set provides more flexibility to match the observed onset, which could inflate its marginal likelihood relative to a penalty-adjusted comparison. Second, several late-onset candidates—including cases whose onset coincided with the Tenerife disembarkation on 10 May—may have been hospitalised before contact with the Canadian case was possible; excluding them would concentrate support on mid-to-late April cases and, if anything, reinforce the generation-3 signal. This remains a classification analysis rather than a full transmission-tree reconstruction, but the evidence points clearly to generation 3.
+
+# Data Availability
+
+The Hondius case data used in this analysis are from the Kraemer Lab curated line list[@kraemerlab2026]. The line list draws on: WHO Disease Outbreak News [@who_don600_2026; @who_don601_2026], UKHSA [@ukhsa2026hondius], BBC News [@bbc2026hondius], and AP News [@apnews2026hondius]. The Epuyén outbreak line list underlying the Funk and Abbott posterior is from Martínez and colleagues [@martinez2020]. All data and code for this report are available at the project repository.
+
+# Supplement
+
+## Sensitivity analyses
+
+Source-onset shifts of ±1 day gave generation-3 posteriors of `r fmt_pct(classification_summary |> filter(scenario == "window_minus_1d", hypothesis == "tertiary") |> pull(probability_median))` and `r fmt_pct(classification_summary |> filter(scenario == "window_plus_1d", hypothesis == "tertiary") |> pull(probability_median))`; a two-fold prior preference for generation 2 gave `r fmt_pct(classification_summary |> filter(scenario == "secondary_prior_x2", hypothesis == "tertiary") |> pull(probability_median))`; three- and seven-day exposure-window padding gave `r fmt_pct(classification_summary |> filter(scenario == "padding_3d", hypothesis == "tertiary") |> pull(probability_median))` and `r fmt_pct(classification_summary |> filter(scenario == "padding_7d", hypothesis == "tertiary") |> pull(probability_median))`. `r if (confirmed_only_available) paste0("Restricting to confirmed generation-3 sources gave ", fmt_pct(confirmed_gen3_median), ".") else ""`
+
+```{r}
+#| label: fig-sensitivity
+#| fig-cap: "Posterior medians and 95% credible intervals across baseline and sensitivity scenarios."
+classification_summary |>
+  mutate(
+    assumed_generation = factor(
+      recode(
+        hypothesis,
+        secondary = "Generation 2",
+        tertiary = "Generation 3"
+      ),
+      levels = c("Generation 2", "Generation 3")
+    ),
+    scenario_label = factor(scenario_label, levels = unique(classification_summary$scenario_label))
+  ) |>
+  ggplot(
+    aes(
+      x = probability_median,
+      y = scenario_label,
+      xmin = probability_lower,
+      xmax = probability_upper,
+      colour = assumed_generation
+    )
+  ) +
+  geom_vline(xintercept = 0.5, colour = "#B0B0B0", linetype = "dashed") +
+  geom_pointrange(position = position_dodge(width = 0.55), linewidth = 0.6) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  scale_colour_manual(values = c("#0B6E4F", "#C84C09")) +
+  labs(
+    x = "Posterior probability",
+    y = NULL,
+    colour = NULL
+  ) +
+  theme(
+    legend.position = "top",
+    panel.grid.minor = element_blank()
+  )
+```
+
+```{r}
+#| label: tbl-sensitivity
+#| tbl-cap: "Sensitivity analysis: posterior medians and 95% credible intervals under alternative onset shifts, prior weights, and exposure-window padding."
+sensitivity_table |>
+  flextable() |>
+  autofit()
+```
+
+# References

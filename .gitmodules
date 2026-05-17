@@ -1,0 +1,6 @@
+[submodule "andv-linelist-analysis"]
+	path = andv-linelist-analysis
+	url = git@github.com:epiforecasts/andv-linelist-analysis.git
+[submodule "external/Hondius_hantavirus_h2026"]
+	path = external/Hondius_hantavirus_h2026
+	url = https://github.com/kraemer-lab/Hondius_hantavirus_h2026.git

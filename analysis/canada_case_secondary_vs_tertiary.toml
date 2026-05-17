@@ -1,0 +1,40 @@
+title = "Canada case generation-2 versus generation-3 timing analysis"
+posterior_path = "andv-linelist-analysis/output/posterior.csv"
+hondius_linelist_path = "external/Hondius_hantavirus_h2026/data/linelist/2026_hantavirus.csv"
+output_dir = "output/canada_case_probability"
+
+[case]
+case_id = "canada_2026_05_15"
+country = "Canada"
+symptom_onset = 2026-05-14
+test_positive = 2026-05-15
+notes = "Working assumptions for an as-yet uncatalogued Canadian case. The generation hypotheses below are evaluated in Julia by combining the fitted transmission-timing posterior for the nominated source cases with the fitted incubation posterior for the Canadian onset date."
+
+[who_events]
+st_helena_disembarkation = 2026-04-24
+cabo_verde_arrival = 2026-05-06
+tenerife_disembarkation = 2026-05-10
+
+[[sources]]
+label = "WHO DON600"
+url = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON600"
+
+[[sources]]
+label = "WHO DON601"
+url = "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON601"
+
+[[hypotheses]]
+name = "secondary"
+label = "Generation-2 infection from case 1"
+description = "Assumes the Canadian case was infected directly by Hondius case 1, treated here as the sole generation-1 onboard source."
+prior_weight = 1.0
+linked_case_ids = [1]
+rationale = "Case 1 is treated as the generation-1 onboard source. Under this hypothesis, the Canadian case is generation 2 and its infection date is inferred by combining the fitted transmission-timing posterior relative to case 1 onset with the fitted incubation posterior for the Canadian onset date."
+
+[[hypotheses]]
+name = "tertiary"
+label = "Generation-3 infection from generation-2 Hondius cases"
+description = "Assumes case 1 seeded the onboard cluster and the Canadian case was infected by one of the remaining symptomatic Hondius cases, treated here as generation 2."
+prior_weight = 1.0
+linked_case_ids = [2, 3, 4, 5, 7, 8, 12, 15, 17, 18]
+rationale = "All onset-documented Hondius cases other than case 1 are treated as generation 2. Under this hypothesis, the Canadian case is generation 3 and its infection date is inferred by averaging over those candidate generation-2 sources using the fitted transmission-timing posterior and the fitted incubation posterior."
