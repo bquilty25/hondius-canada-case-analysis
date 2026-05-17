@@ -1,8 +1,41 @@
 # Hondius Canada Case Analysis
 
-Bayesian classification of the Canadian Andes virus case (onset 14 May 2026) as generation 2 (direct from Hondius case 1) or generation 3 (from the onboard cluster).
+Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 — direct infection from Hondius case 1 — or generation 3 — infection from the onboard secondary cluster.
 
-## Structure
+> **Key result:** Baseline posterior support was **91.2% (95% CrI 80.4–97.4%) for generation 3** versus 8.8% (95% CrI 2.6–19.6%) for generation 2. No sensitivity scenario reversed this ordering. The result constitutes additional evidence of human-to-human transmission within the Hondius cluster.
+
+## Approach
+
+Posterior distributions for Andes virus incubation period and transmission timing were taken from Funk and Abbott's Bayesian re-estimation of the 2018–19 Epuyén outbreak ([epiforecasts/andv-linelist-analysis](https://epiforecasts.io/andv-linelist-analysis/dev)) and applied to the Hondius line list. For each posterior draw, the Canadian infection date and candidate source were evaluated jointly: support accumulated where a proposed exposure date was simultaneously consistent with the transmission-timing distribution from the source and with the incubation distribution to Canadian onset (14 May 2026). These contributions were combined with equal priors on generation, then normalised.
+
+Two competing hypotheses were evaluated:
+
+| Hypothesis | Assumed generation | Candidate sources | Exposure window |
+|---|---|---|---|
+| Generation 2 | Direct from case 1 (onset 6 Apr) | 1 | 1 Apr – 13 May 2026 |
+| Generation 3 | From onboard cluster (cases 2–18) | 10 | 17 Apr – 13 May 2026 |
+
+## Sensitivity analyses
+
+| Scenario | Generation-3 posterior |
+|---|---|
+| Baseline | 91.2% (80.4–97.4%) |
+| Source onsets −1 day | 92.8% |
+| Source onsets +1 day | 89.0% |
+| Generation-2 prior ×2 | 83.5% |
+| Exposure padding 3 days | 91.4% |
+| Exposure padding 7 days | 91.0% |
+| Confirmed gen-3 sources only | 91.6% |
+
+## Data and code
+
+- **Hondius line list:** Global.health curated data from the Kraemer Lab — [kraemer-lab/Hondius_hantavirus_h2026](https://github.com/kraemer-lab/Hondius_hantavirus_h2026) (CC BY 4.0), which draws on WHO DON600/601, UKHSA, BBC News, and AP News
+- **Epuyén outbreak line list:** Martínez et al. (2020) *NEJM* 383:2230–2241 — [doi:10.1056/NEJMoa2009040](https://doi.org/10.1056/NEJMoa2009040)
+- **Timing posterior:** Funk & Abbott (2026) — [epiforecasts.io/andv-linelist-analysis](https://epiforecasts.io/andv-linelist-analysis/dev)
+- **Canadian case:** PHAC (16 May 2026) — [canada.ca](https://www.canada.ca/en/public-health/news/2026/05/media-update-on-andes-hantavirus-situation0.html)
+- **WHO context:** [DON600](https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON600) · [DON601](https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON601)
+
+## Repository structure
 
 ```
 analysis/                          # Canada-specific analysis scripts and report
@@ -21,7 +54,7 @@ output/                            # Generated outputs (gitignored)
 ## Setup
 
 ```bash
-git clone --recurse-submodules https://github.com/billyquilty/hondius-canada-case-analysis.git
+git clone --recurse-submodules https://github.com/bquilty25/hondius-canada-case-analysis.git
 cd hondius-canada-case-analysis
 ```
 
@@ -33,7 +66,7 @@ julia --project=andv-linelist-analysis analysis/canada_case_probability.jl
 ```
 
 **2. R figures:**
-```r
+```bash
 Rscript analysis/canada_case_probability_ggplot.R
 ```
 
