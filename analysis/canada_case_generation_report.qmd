@@ -257,42 +257,9 @@ The Hondius outbreak immediately raised the question of whether exported cases r
 
 A critical prior assumption underlies the entire analysis: that human-to-human (H2H) transmission of Andes virus occurred within the Hondius cluster — specifically, that case 1 infected other passengers via H2H contact (generating the onboard secondary cluster), and that one or more of those generation-2 cases could have in turn infected the Canadian case. H2H transmission is a well-documented and distinctive feature of Andes virus [@martinez2020], and the scale and epidemiological pattern of the Hondius cluster is consistent with ongoing shipboard H2H spread [@who_don600_2026; @who_don601_2026]. If the Hondius cases were instead independent zoonotic spillover events, the generation-2/3 distinction used here would not apply.
 
-# Methods
-
-Posterior distributions for the Andes virus incubation period and transmission timing were taken from Funk and Abbott's Bayesian re-estimation of the 2018-19 Epuyén outbreak [@funk_abbott_2026; @martinez2020] and applied directly here. This posterior had median incubation log-mean `r fmt_prob(mu_inc_median)`, log-SD `r fmt_prob(sigma_inc_median)`, transmission-timing mean `r fmt_prob(mu_delta_median)` days, and SD `r fmt_prob(sigma_delta_median)` days.
-
-Hondius case data came from the Kraemer Lab line list [@kraemerlab2026]; public health context from PHAC and WHO statements [@phac2026; @who_don600_2026; @who_don601_2026]. Case 1 was treated as the sole generation-1 source; all other onset-documented cases in the source set were candidate generation-2 sources, and the Canadian case was evaluated as either generation 2 or generation 3.
-
-For each posterior draw, the Canadian infection date and candidate source were evaluated jointly: support accumulated where a proposed exposure date was simultaneously consistent with the transmission-timing distribution from the source and with the incubation distribution to Canadian onset. These contributions were combined with priors on generation, source, and date, then normalised to yield posterior support. The exposure window was bounded above by the day before Canadian onset and below by the earliest source onset minus a transmission-padding constant (default five days, capturing plausible pre-symptomatic shedding). Sensitivity analyses used three- and seven-day padding, and a further scenario restricted generation-3 sources to confirmed cases only.
-
-The upstream Epuyén model assigned each case latent infection and onset times, modelled incubation log-normally, transmission timing as normal, offspring counts with a negative-binomial component, and the time-varying reproduction number as a log-scale random walk [@funk_abbott_2026; @martinez2020]. Principal priors are listed in @tbl-priors; the two competing hypotheses are defined in @tbl-hypotheses.
-
-```{r}
-#| label: tbl-priors
-#| tbl-cap: "Bayesian priors used in the Epuyén re-estimation by Funk and Abbott."
-prior_table |>
-  flextable() |>
-  autofit()
-```
-
-```{r}
-#| label: tbl-hypotheses
-#| tbl-cap: "Definition of the two competing assumed generations and the source data that support them."
-hypothesis_table |>
-  transmute(
-    `Assumed generation` = assumed_generation,
-    `Candidate source cases` = candidate_sources,
-    `Source onset range` = source_onset_range,
-    `Evaluated exposure range` = evaluated_exposure_range,
-    Rationale = rationale
-  ) |>
-  flextable() |>
-  autofit()
-```
-
 # Results
 
-The baseline posterior strongly favoured generation 3: `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) versus `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 (@tbl-baseline). Peak exposure support fell on `r fmt_date(gen2_peak$exposure_date[[1]])` under generation 2 and `r fmt_date(gen3_peak$exposure_date[[1]])` under generation 3 (@fig-density; @fig-dates), the latter closely matching the late-April onboard onset wave (see @fig-timeline in the Supplement).
+The baseline posterior strongly favoured the Canadian case being generation 3: `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) versus `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 (@tbl-baseline). Peak exposure support fell on `r fmt_date(gen2_peak$exposure_date[[1]])` under generation 2 and `r fmt_date(gen3_peak$exposure_date[[1]])` under generation 3 (@fig-density; @fig-dates), the latter closely matching the late-April onboard onset wave (see @fig-timeline in the Supplement).
 
 ```{r}
 #| label: tbl-baseline
@@ -323,6 +290,39 @@ The generation-2 hypothesis has a single candidate source (case 1, onset `r fmt_
 The Canadian case is more consistent with a third-generation infection from the onboard cluster than directly from case 1, despite the reportedly long incubation period; the observed onset on 14 May aligns more closely with late-April onboard sources, not with the generation-2 window anchored to case 1.
 
 The result holds across all sensitivity scenarios. Two structural qualifications remain. First, the generation-3 hypothesis has `r nrow(candidate_sources |> filter(hypothesis == "tertiary"))` candidate sources against one for generation 2; the broader candidate set provides more flexibility to match the observed onset, which could inflate its marginal likelihood relative to a penalty-adjusted comparison. Second, several late-onset candidates-including cases whose onset coincided with the Tenerife disembarkation on 10 May – may have been hospitalised before contact with the Canadian case was possible; excluding them would concentrate support on mid-to-late April cases and, if anything, reinforce the generation-3 signal. This remains a classification analysis rather than a full transmission-tree reconstruction.
+
+# Methods
+
+Incubation period and transmission interval distributions for Andes virus were taken from Funk and Abbott's Bayesian re-estimation of the 2018–19 Epuyén outbreak [@funk_abbott_2026; @martinez2020], which yielded a posterior with median incubation log-mean `r fmt_prob(mu_inc_median)`, log-SD `r fmt_prob(sigma_inc_median)`, transmission-interval mean `r fmt_prob(mu_delta_median)` days, and SD `r fmt_prob(sigma_delta_median)` days.
+
+Hondius case data came from the Kraemer Lab line list [@kraemerlab2026]; public health context from PHAC and WHO statements [@phac2026; @who_don600_2026; @who_don601_2026]. Case 1 was treated as the sole generation-1 source; all other onset-documented cases were candidate generation-2 sources; the Canadian case was evaluated as either generation 2 or generation 3.
+
+For each hypothesis, the marginal likelihood of the observed Canadian onset (14 May 2026) was computed by integrating over candidate source cases and exposure dates within the hypothesis-specific window (@tbl-hypotheses). Each (source, exposure date) pair was weighted by the joint probability under the transmission interval distribution (source onset → exposure date) and the incubation distribution (exposure date → Canadian onset). Uncertainty in the epidemiological parameters was propagated by averaging over draws from the Epuyén posterior. The two hypotheses were assigned equal prior weight; posterior probabilities were obtained by normalising the resulting marginal likelihoods. The exposure window lower bound was set to the earliest source onset minus a padding constant (default five days, capturing plausible pre-symptomatic transmission). Sensitivity analyses used three- and seven-day padding, and a further scenario restricted generation-3 sources to confirmed cases only.
+
+The upstream Epuyén model assigned each case latent infection and onset times, modelled incubation log-normally, transmission timing as normal, offspring counts with a negative-binomial component, and the time-varying reproduction number as a log-scale random walk [@funk_abbott_2026; @martinez2020]. Principal priors are listed in @tbl-priors; the two competing hypotheses are defined in @tbl-hypotheses.
+
+```{r}
+#| label: tbl-priors
+#| tbl-cap: "Bayesian priors used in the Epuyén re-estimation by Funk and Abbott."
+prior_table |>
+  flextable() |>
+  autofit()
+```
+
+```{r}
+#| label: tbl-hypotheses
+#| tbl-cap: "Definition of the two competing assumed generations and the source data that support them."
+hypothesis_table |>
+  transmute(
+    `Assumed generation` = assumed_generation,
+    `Candidate source cases` = candidate_sources,
+    `Source onset range` = source_onset_range,
+    `Evaluated exposure range` = evaluated_exposure_range,
+    Rationale = rationale
+  ) |>
+  flextable() |>
+  autofit()
+```
 
 # Data Availability
 
