@@ -47,7 +47,8 @@ function parse_config(path)
             prior_weight = Float64(h["prior_weight"]),
             linked_case_ids = Int.(h["linked_case_ids"]),
             rationale = string(h["rationale"]),
-            window_rule = haskey(h, "window_rule") ? h["window_rule"] : nothing)
+            window_rule = haskey(h, "window_rule") ? h["window_rule"] : nothing,
+            exposure_end_override = haskey(h, "exposure_end") ? Date(string(h["exposure_end"])) : nothing)
         for h in raw["hypotheses"]
     ]
 
@@ -97,7 +98,8 @@ function resolve_hypothesis_windows(hypotheses, hondius, case_cfg; padding_days 
         source_prior_weights = fill(1.0 / length(source_ids), length(source_ids))
 
         exposure_start = minimum(source_onsets) - Day(padding_days)
-        exposure_end = case_cfg.symptom_onset - Day(1)
+        default_end = case_cfg.symptom_onset - Day(1)
+        exposure_end = isnothing(hypothesis.exposure_end_override) ? default_end : min(hypothesis.exposure_end_override, default_end)
         exposure_start <= exposure_end || error("Resolved exposure window is invalid for hypothesis $(hypothesis.name)")
 
         push!(resolved, merge(hypothesis, (; exposure_start, exposure_end, source_ids, source_onsets, source_prior_weights)))

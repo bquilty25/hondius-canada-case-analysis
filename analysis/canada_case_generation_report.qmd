@@ -247,7 +247,7 @@ prior_table <- tibble::tibble(
 
 # Summary
 
-A Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) assessed whether infection was generation 2 (direct from Hondius case 1) or generation 3 (from the onboard cluster). Applying the Epuyén timing posterior from Funk and Abbott [@funk_abbott_2026; @martinez2020] to the Hondius line list [@kraemerlab2026], the baseline analysis gave posterior support of `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) for generation 3 against `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 [@phac2026; @who_don600_2026; @who_don601_2026]. The peak generation-3 exposure date was `r fmt_date(gen3_peak$exposure_date[[1]])`. The strong posterior support for generation 3 providing additional evidence of additional human-to-human transmission within the Hondius cluster beyond assumed transmission from the initial case.
+A Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) assessed whether infection was generation 2 (direct from Hondius case 1) or generation 3 (from the onboard cluster). Applying the Epuyén timing posterior from Funk and Abbott [@funk_abbott_2026; @martinez2020] to the Hondius line list [@kraemerlab2026], the baseline analysis gave posterior support of `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) for generation 3 against `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 [@phac2026; @who_don600_2026; @who_don601_2026]. The peak generation-3 exposure date was `r fmt_date(gen3_peak$exposure_date[[1]])`. Posterior support for generation 3 provides additional evidence of human-to-human transmission within the Hondius cluster beyond the initial case.
 
 # Introduction
 
@@ -290,7 +290,7 @@ hypothesis_table |>
 
 # Results
 
-The baseline posterior strongly favoured generation 3: `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) versus `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 (@tbl-baseline). Peak exposure support fell on `r fmt_date(gen2_peak$exposure_date[[1]])` under generation 2 and `r fmt_date(gen3_peak$exposure_date[[1]])` under generation 3 (@fig-density; @fig-dates), the latter closely matching the late-April onboard onset wave (@fig-timeline).
+The baseline posterior strongly favoured generation 3: `r fmt_pct(gen3_median)` (`r fmt_pct(gen3_lower)`–`r fmt_pct(gen3_upper)`) versus `r fmt_pct(gen2_median)` (`r fmt_pct(gen2_lower)`–`r fmt_pct(gen2_upper)`) for generation 2 (@tbl-baseline). Peak exposure support fell on `r fmt_date(gen2_peak$exposure_date[[1]])` under generation 2 and `r fmt_date(gen3_peak$exposure_date[[1]])` under generation 3 (@fig-density; @fig-dates), the latter closely matching the late-April onboard onset wave (see @fig-timeline in the Supplement).
 
 ```{r}
 #| label: tbl-baseline
@@ -312,12 +312,6 @@ knitr::include_graphics(file.path(embedded_plot_dir, "probability_overlap_densit
 knitr::include_graphics(file.path(embedded_plot_dir, "date_overlap_density.png"))
 ```
 
-```{r}
-#| label: fig-timeline
-#| fig-cap: "Symptom onset, confirmation, and outcome dates for Hondius cases and the Canadian case."
-knitr::include_graphics(file.path(embedded_plot_dir, "onset_timings.png"))
-```
-
 No alternative scenario reversed the ordering. Full sensitivity results are in the Supplement (@fig-sensitivity; @tbl-sensitivity).
 
 The generation-2 hypothesis has a single candidate source (case 1, onset `r fmt_date(candidate_sources |> filter(hypothesis == "secondary") |> pull(symptom_onset) |> unique())`); the generation-3 hypothesis averages over `r candidate_sources |> filter(hypothesis == "tertiary") |> nrow()` candidates spanning `r fmt_date(candidate_sources |> filter(hypothesis == "tertiary") |> summarise(min_date = min(symptom_onset, na.rm = TRUE)) |> pull(min_date))` to `r fmt_date(candidate_sources |> filter(hypothesis == "tertiary") |> summarise(max_date = max(symptom_onset, na.rm = TRUE)) |> pull(max_date))`.
@@ -333,6 +327,14 @@ The result holds across all sensitivity scenarios. Two structural qualifications
 The Hondius case data used in this analysis are from the Kraemer Lab curated line list[@kraemerlab2026]. The line list draws on: WHO Disease Outbreak News [@who_don600_2026; @who_don601_2026], UKHSA [@ukhsa2026hondius], BBC News [@bbc2026hondius], and AP News [@apnews2026hondius]. The Epuyén outbreak line list underlying the Funk and Abbott posterior is from Martínez and colleagues [@martinez2020]. All data and code for this report are available at the project repository.
 
 # Supplement
+
+## Case event timeline
+
+```{r}
+#| label: fig-timeline
+#| fig-cap: "Symptom onset, confirmation, and outcome dates for Hondius cases and the Canadian case."
+knitr::include_graphics(file.path(embedded_plot_dir, "onset_timings.png"))
+```
 
 ## Sensitivity analyses
 

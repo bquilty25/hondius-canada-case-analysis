@@ -1,9 +1,13 @@
 args <- commandArgs(trailingOnly = TRUE)
 
-date_input_path <- if (length(args) >= 1) args[[1]] else {
+date_input_path <- if (length(args) >= 1) {
+  args[[1]]
+} else {
   "output/canada_case_probability/baseline_date_distribution.csv"
 }
-output_dir <- if (length(args) >= 2) args[[2]] else {
+output_dir <- if (length(args) >= 2) {
+  args[[2]]
+} else {
   dirname(date_input_path)
 }
 
@@ -139,14 +143,14 @@ if (file.exists(linelist_input_path)) {
   onset_raw <- read.csv(linelist_input_path, check.names = FALSE)
 
   parse_date_col <- function(x) as.Date(ifelse(x %in% c("", "NA", NA), NA, x))
-  onset_raw$symptom_onset    <- parse_date_col(onset_raw$symptom_onset)
+  onset_raw$symptom_onset <- parse_date_col(onset_raw$symptom_onset)
   onset_raw$confirmation_date <- parse_date_col(onset_raw$confirmation_date)
-  onset_raw$outcome_date     <- parse_date_col(onset_raw$outcome_date)
+  onset_raw$outcome_date <- parse_date_col(onset_raw$outcome_date)
 
   # Keep only cases that have at least one dateable event
   has_date <- !is.na(onset_raw$symptom_onset) |
-              !is.na(onset_raw$confirmation_date) |
-              !is.na(onset_raw$outcome_date)
+    !is.na(onset_raw$confirmation_date) |
+    !is.na(onset_raw$outcome_date)
   onset_raw <- onset_raw[has_date, ]
 
   # Add Canadian case as a synthetic row
@@ -167,8 +171,10 @@ if (file.exists(linelist_input_path)) {
   case_order <- c(
     "CA",
     rev(onset_raw$Gh_ID[onset_raw$Gh_ID != "CA"][
-      order(onset_raw$symptom_onset[onset_raw$Gh_ID != "CA"],
-            onset_raw$Gh_ID[onset_raw$Gh_ID != "CA"])
+      order(
+        onset_raw$symptom_onset[onset_raw$Gh_ID != "CA"],
+        onset_raw$Gh_ID[onset_raw$Gh_ID != "CA"]
+      )
     ])
   )
   onset_raw$case_label <- ifelse(
@@ -180,15 +186,21 @@ if (file.exists(linelist_input_path)) {
 
   # Pivot to long format
   onset_long <- rbind(
-    data.frame(case_label = onset_raw$case_label, status = onset_raw$status,
-               date = onset_raw$symptom_onset, date_type = "Symptom onset",
-               stringsAsFactors = FALSE),
-    data.frame(case_label = onset_raw$case_label, status = onset_raw$status,
-               date = onset_raw$confirmation_date, date_type = "Confirmation / positive test",
-               stringsAsFactors = FALSE),
-    data.frame(case_label = onset_raw$case_label, status = onset_raw$status,
-               date = onset_raw$outcome_date, date_type = "Outcome",
-               stringsAsFactors = FALSE)
+    data.frame(
+      case_label = onset_raw$case_label, status = onset_raw$status,
+      date = onset_raw$symptom_onset, date_type = "Symptom onset",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      case_label = onset_raw$case_label, status = onset_raw$status,
+      date = onset_raw$confirmation_date, date_type = "Confirmation / positive test",
+      stringsAsFactors = FALSE
+    ),
+    data.frame(
+      case_label = onset_raw$case_label, status = onset_raw$status,
+      date = onset_raw$outcome_date, date_type = "Outcome",
+      stringsAsFactors = FALSE
+    )
   )
   onset_long <- onset_long[!is.na(onset_long$date), ]
   onset_long$date <- as.Date(onset_long$date)
@@ -221,7 +233,7 @@ if (file.exists(linelist_input_path)) {
       linewidth = 0.8,
       show.legend = TRUE
     ) +
-    scale_colour_manual(values = onset_status_palette, name = "Case status") +
+    scale_colour_manual(values = onset_status_palette, name = "Status") +
     scale_shape_manual(values = date_type_shapes, name = "Date type") +
     scale_linetype_manual(values = c("Main disembarkation" = line_types[["Main disembarkation"]]), name = NULL) +
     scale_x_date(

@@ -2,7 +2,7 @@
 
 Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 (direct infection from Hondius case 1) or generation 3 (infection from the onboard secondary cluster).
 
-> **Key result:** Baseline posterior support was **91.2% (95% CrI 80.4–97.4%) for generation 3** versus 8.8% (95% CrI 2.6–19.6%) for generation 2. No sensitivity scenario reversed this ordering. The result indicates additional evidence of human-to-human transmission within the Hondius cluster.
+> **Key result:** Baseline posterior support was **73.9% (95% CrI 52.9–91.1%) for generation 3** versus 26.1% (95% CrI 8.9–47.1%) for generation 2. No sensitivity scenario reversed this ordering. The result indicates additional evidence of human-to-human transmission within the Hondius cluster.
 
 ## Approach
 
@@ -14,20 +14,21 @@ Two competing hypotheses were evaluated:
 
 | Hypothesis | Assumed generation | Candidate sources | Exposure window |
 |---|---|---|---|
-| Generation 2 | Direct from case 1 (onset 6 Apr) | 1 | 1 Apr – 13 May 2026 |
-| Generation 3 | From onboard cluster (cases 2–18) | 10 | 17 Apr – 13 May 2026 |
+| Generation 2 | Direct from case 1 (onset 6 Apr, died 11 Apr) | 1 | 1 Apr – 11 Apr 2026 |
+| Generation 3 | From onboard cluster (cases 2–18) | 10 | 17 Apr – 10 May 2026 |
 
 ## Sensitivity analyses
 
 | Scenario | Generation-3 posterior |
 |---|---|
-| Baseline | 91.2% (80.4–97.4%) |
-| Source onsets −1 day | 92.8% |
-| Source onsets +1 day | 89.0% |
-| Generation-2 prior ×2 | 83.5% |
-| Exposure padding 3 days | 91.4% |
-| Exposure padding 7 days | 91.0% |
-| Confirmed gen-3 sources only | 91.6% |
+| Baseline | 73.9% (52.9–91.1%) |
+| Source onsets −1 day | 78.1% (57.7–93.4%) |
+| Source onsets +1 day | 68.7% (47.2–88.1%) |
+| Generation-2 prior ×2 | 57.5% (34.6–83.1%) |
+| Generation-3 prior ×2 | 85.4% (69.9–95.5%) |
+| Exposure padding 3 days | 71.5% (49.7–90.1%) |
+| Exposure padding 7 days | 75.6% (55.1–91.8%) |
+| Confirmed gen-3 sources only | 75.0% (54.6–91.5%) |
 
 ## Data and code
 
