@@ -253,6 +253,8 @@ A Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2
 
 The Hondius outbreak immediately raised the question of whether exported cases represented direct descent from the index case or onward spread within the shipboard cluster [@who_don600_2026; @who_don601_2026]. For the Canadian case, generation 2 implies direct infection from case 1; generation 3 implies the cluster had already amplified before disembarkation [@phac2026]. This report addresses that classification question; full transmission-tree reconstruction is out of scope.
 
+A critical prior assumption underlies the entire analysis: that human-to-human (H2H) transmission of Andes virus occurred within the Hondius cluster — specifically, that case 1 infected other passengers via H2H contact (generating the onboard secondary cluster), and that one or more of those generation-2 cases could have in turn infected the Canadian case. H2H transmission is a well-documented and distinctive feature of Andes virus [@martinez2020], and the scale and epidemiological pattern of the Hondius cluster is consistent with ongoing shipboard H2H spread [@who_don600_2026; @who_don601_2026]. If the Hondius cases were instead independent zoonotic spillover events, the generation-2/3 distinction used here would not apply.
+
 # Methods
 
 Posterior distributions for the Andes virus incubation period and transmission timing were taken from Funk and Abbott's Bayesian re-estimation of the 2018-19 Epuyén outbreak [@funk_abbott_2026; @martinez2020] and applied directly here. This posterior had median incubation log-mean `r fmt_prob(mu_inc_median)`, log-SD `r fmt_prob(sigma_inc_median)`, transmission-timing mean `r fmt_prob(mu_delta_median)` days, and SD `r fmt_prob(sigma_delta_median)` days.

@@ -1,10 +1,12 @@
 # Hondius Canada Case Analysis
 
-Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 — direct infection from Hondius case 1 — or generation 3 — infection from the onboard secondary cluster.
+Bayesian classification of a Canadian Andes virus case (symptom onset 14 May 2026, confirmed positive 15 May 2026) as generation 2 (direct infection from Hondius case 1) or generation 3 (infection from the onboard secondary cluster).
 
 > **Key result:** Baseline posterior support was **91.2% (95% CrI 80.4–97.4%) for generation 3** versus 8.8% (95% CrI 2.6–19.6%) for generation 2. No sensitivity scenario reversed this ordering. The result indicates additional evidence of human-to-human transmission within the Hondius cluster.
 
 ## Approach
+
+**Key assumption:** This analysis assumes that human-to-human (H2H) transmission of Andes virus occurred within the Hondius shipboard cluster — that is, that case 1 infected other passengers (generation 2) via H2H contact, and that generation-2 cases could in turn have infected the Canadian case (generation 3). This assumption is well-supported for Andes virus [@martinez2020; @funk_abbott_2026] but is not independently verified for the Hondius cluster. If the Hondius cluster cases were instead independent zoonotic spillovers, the generation-2/3 distinction would not apply.
 
 Posterior distributions for Andes virus incubation period and transmission timing were taken from Funk and Abbott's Bayesian re-estimation of the 2018–19 Epuyén outbreak ([epiforecasts/andv-linelist-analysis](https://epiforecasts.io/andv-linelist-analysis/dev)) and applied to the Hondius line list. For each posterior draw, the Canadian infection date and candidate source were evaluated jointly: support accumulated where a proposed exposure date was simultaneously consistent with the transmission-timing distribution from the source and with the incubation distribution to Canadian onset (14 May 2026). These contributions were combined with equal priors on generation, then normalised.
 
