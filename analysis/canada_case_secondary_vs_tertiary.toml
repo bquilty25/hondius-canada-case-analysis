@@ -1,5 +1,5 @@
 title = "Canada case generation-2 versus generation-3 timing analysis"
-posterior_path = "andv-linelist-analysis/output/posterior.csv"
+posterior_path = "data/posterior.csv"
 hondius_linelist_path = "external/Hondius_hantavirus_h2026/data/linelist/2026_hantavirus.csv"
 output_dir = "output/canada_case_probability"
 

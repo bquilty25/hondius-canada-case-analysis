@@ -45,7 +45,8 @@ analysis/                          # Canada-specific analysis scripts and report
   canada_case_generation_report.qmd       # Quarto report
   canada_case_generation_report.bib       # References
 andv-linelist-analysis/            # Submodule: epiforecasts/andv-linelist-analysis
-  output/posterior.csv             # Epuyén timing posterior (used as input)
+data/
+  posterior.csv                    # Epuyén timing posterior (from Funk & Abbott 2026)
 external/
   Hondius_hantavirus_h2026/        # Submodule: kraemer-lab/Hondius_hantavirus_h2026
 output/                            # Generated outputs (gitignored)

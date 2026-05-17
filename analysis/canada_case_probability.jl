@@ -11,6 +11,7 @@ const DEFAULT_PADDING_DAYS = 5
 
 function usage()
     println("Usage: julia --project=andv-linelist-analysis analysis/canada_case_probability.jl [config_path] [output_dir]")
+    println("  Requires: data/posterior.csv, external/Hondius_hantavirus_h2026 submodule")
     println()
     println("If no arguments are supplied, the default config at analysis/canada_case_secondary_vs_tertiary.toml is used.")
 end

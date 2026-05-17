@@ -67,7 +67,7 @@ candidate_sources <- rio::import(here::here("output", "canada_case_probability",
     confirmation_date = as.Date(confirmation_date)
   )
 
-posterior_draws <- rio::import(here::here("output", "posterior.csv"))
+posterior_draws <- rio::import(here::here("data", "posterior.csv"))
 
 resolved_hypotheses <- rio::import(here::here("output", "canada_case_probability", "resolved_hypothesis_windows.csv")) |>
   janitor::clean_names() |>
